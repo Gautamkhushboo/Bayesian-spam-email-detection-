@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bayesian Spam Email Detection & Explainability Platform</title>
+  
+  <!-- Google Fonts & Font Awesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  
+  <!-- Custom Styling -->
+  <link href="/static/css/style.css" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Ambient Glow Background Canvas -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Main Container -->
+  <div class="container-fluid max-app-width py-4 px-md-4">
+    
+    <!-- Header / Navbar -->
+    <header class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom-glass">
+      <div class="d-flex align-items-center gap-3">
+        <div class="brand-icon-wrapper">
+          <i class="fa-solid fa-shield-halved text-gradient-primary"></i>
+        </div>
+        <div>
+          <h1 class="h3 fw-bold mb-0 text-white tracking-tight">Bayesian Spam Guard</h1>
+          <p class="text-muted-light small mb-0">Multinomial Naive Bayes &bull; Token-Level Explainability Engine</p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2 mt-3 mt-sm-0">
+        <span class="badge badge-glass-pill">
+          <span class="status-dot"></span> Model Active (v1.0)
+        </span>
+        <a href="#analytics-section" class="btn btn-sm btn-outline-glass" id="headerStatsBtn">
+          <i class="fa-solid fa-chart-simple me-1"></i> <span id="headerAccBadge">98.5% Acc</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills custom-nav-pills mb-4" id="mainTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="inspector-tab" data-bs-toggle="pill" data-bs-target="#inspector-tab-pane" type="button" role="tab">
+          <i class="fa-solid fa-envelope-circle-check me-2"></i>Live Email Inspector
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="batch-tab" data-bs-toggle="pill" data-bs-target="#batch-tab-pane" type="button" role="tab">
+          <i class="fa-solid fa-layer-group me-2"></i>Batch CSV Classifier
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics-tab-pane" type="button" role="tab">
+          <i class="fa-solid fa-chart-line me-2"></i>Model Analytics & Metrics
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="bayes-tab" data-bs-toggle="pill" data-bs-target="#bayes-tab-pane" type="button" role="tab">
+          <i class="fa-solid fa-brain me-2"></i>Bayes' Theorem & Math
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="mainTabContent">
+
+      <!-- ==================== TAB 1: LIVE EMAIL INSPECTOR ==================== -->
+      <div class="tab-pane fade show active" id="inspector-tab-pane" role="tabpanel" tabindex="0">
+        <div class="row g-4">
+          
+          <!-- Left Column: Input & Controls -->
+          <div class="col-lg-7">
+            <div class="glass-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-pen-to-square text-indigo"></i>
+                  <h5 class="card-title-text mb-0">Input Message</h5>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <span id="charCountBadge" class="text-muted-light x-small font-monospace">0 chars &bull; 0 words</span>
+                  <button type="button" class="btn btn-sm btn-ghost" id="clearBtn" title="Clear text">
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Presets -->
+              <div class="mb-3">
+                <label class="x-small text-muted-light fw-semibold text-uppercase tracking-wider mb-2 d-block">
+                  <i class="fa-solid fa-wand-magic-sparkles me-1 text-warning"></i> Quick Sample Presets
+                </label>
+                <div class="sample-preset-scroller d-flex flex-wrap gap-2" id="presetPillContainer">
+                  <button type="button" class="btn-sample-pill spam-pill" data-sample="lottery">
+                    <i class="fa-solid fa-gift me-1"></i> $1000 Walmart Prize
+                  </button>
+                  <button type="button" class="btn-sample-pill spam-pill" data-sample="crypto">
+                    <i class="fa-solid fa-coins me-1"></i> Bitcoin Investment
+                  </button>
+                  <button type="button" class="btn-sample-pill spam-pill" data-sample="bank">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i> Urgent Account Alert
+                  </button>
+                  <button type="button" class="btn-sample-pill ham-pill" data-sample="meeting">
+                    <i class="fa-regular fa-calendar-check me-1"></i> Project Sync Agenda
+                  </button>
+                  <button type="button" class="btn-sample-pill ham-pill" data-sample="delivery">
+                    <i class="fa-solid fa-box me-1"></i> Amazon Delivery Notice
+                  </button>
+                  <button type="button" class="btn-sample-pill ham-pill" data-sample="family">
+                    <i class="fa-solid fa-house-chimney-user me-1"></i> Family Dinner Plan
+                  </button>
+                </div>
+              </div>
+
+              <!-- Textarea -->
+              <div class="form-group mb-3 position-relative">
+                <textarea id="emailInput" class="form-control modern-textarea" rows="7" placeholder="Paste or type an email, SMS, or notification message to evaluate..."></textarea>
+              </div>
+
+              <!-- Action Row -->
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="liveModeToggle">
+                    <label class="form-check-label x-small text-muted-light" for="liveModeToggle">Live Typing Prediction</label>
+                  </div>
+                </div>
+                <button id="analyzeBtn" class="btn btn-primary-gradient px-4 py-2 fw-semibold">
+                  <span id="btnSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
+                  <i class="fa-solid fa-bolt me-1" id="btnIcon"></i> Analyze Email
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Live Prediction & Visualizer -->
+          <div class="col-lg-5">
+            <div class="glass-card h-100 d-flex flex-column justify-content-between" id="resultCardWrapper">
+              
+              <!-- Empty Placeholder State -->
+              <div id="resultEmptyState" class="text-center py-5 my-auto">
+                <div class="empty-icon-circle mx-auto mb-3">
+                  <i class="fa-solid fa-satellite-dish text-indigo fa-2x"></i>
+                </div>
+                <h5 class="fw-semibold text-white">Ready for Analysis</h5>
+                <p class="text-muted-light small mb-3">Type or choose a sample email to inspect Bayesian classification and word trigger weights.</p>
+                <button type="button" class="btn btn-sm btn-outline-glass" onclick="document.querySelector('.btn-sample-pill.spam-pill').click()">
+                  Try Sample Message
+                </button>
+              </div>
+
+              <!-- Active Results Panel -->
+              <div id="resultActiveState" class="d-none flex-column h-100 justify-content-between">
+                
+                <!-- Verdict Header -->
+                <div class="verdict-banner p-3 rounded-3 mb-3 d-flex align-items-center justify-content-between" id="verdictBanner">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="verdict-icon-badge" id="verdictIconBadge">
+                      <i class="fa-solid fa-shield-virus" id="verdictIcon"></i>
+                    </div>
+                    <div>
+                      <span class="x-small text-uppercase tracking-wider fw-bold text-muted-light">Classification Verdict</span>
+                      <h3 class="fw-extrabold mb-0" id="verdictTitle">SPAM</h3>
+                    </div>
+                  </div>
+                  <div class="text-end">
+                    <span class="x-small text-muted-light d-block">Confidence</span>
+                    <span class="confidence-number fw-bold" id="confidenceValue">99.4%</span>
+                  </div>
+                </div>
+
+                <!-- Dual Probability Bars -->
+                <div class="prob-section mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small fw-semibold text-danger d-flex align-items-center gap-1">
+                      <i class="fa-solid fa-circle-exclamation"></i> Spam Probability
+                    </span>
+                    <span class="small fw-bold font-monospace text-danger" id="spamProbText">0.0%</span>
+                  </div>
+                  <div class="progress progress-glass mb-3">
+                    <div id="spamProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-danger" role="progressbar" style="width: 0%"></div>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small fw-semibold text-success d-flex align-items-center gap-1">
+                      <i class="fa-solid fa-circle-check"></i> Ham (Legitimate) Probability
+                    </span>
+                    <span class="small fw-bold font-monospace text-success" id="hamProbText">0.0%</span>
+                  </div>
+                  <div class="progress progress-glass">
+                    <div id="hamProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <!-- Word Highlights / Token Inspector Box -->
+                <div class="token-inspector-box p-3 rounded-3 mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="x-small fw-bold text-uppercase tracking-wider text-muted-light">
+                      <i class="fa-solid fa-highlighter me-1 text-indigo"></i> Token Trigger Heatmap
+                    </span>
+                    <span class="badge badge-subtle x-small" id="tokensCountBadge">0 tokens</span>
+                  </div>
+                  <div class="tokens-rendered-container" id="highlightedTokensContainer">
+                    <!-- Dynamic token chips inserted here -->
+                  </div>
+                  <div class="legend-row d-flex gap-3 mt-2 pt-2 border-top-glass x-small text-muted-light">
+                    <span class="d-flex align-items-center gap-1"><span class="legend-dot bg-danger"></span> Spam Cue</span>
+                    <span class="d-flex align-items-center gap-1"><span class="legend-dot bg-success"></span> Ham Cue</span>
+                    <span class="d-flex align-items-center gap-1"><span class="legend-dot bg-secondary"></span> Neutral</span>
+                  </div>
+                </div>
+
+                <!-- Top Influential Words Quick Row -->
+                <div>
+                  <span class="x-small fw-bold text-uppercase tracking-wider text-muted-light d-block mb-1">
+                    Top Influential Keywords In Text
+                  </span>
+                  <div class="d-flex flex-wrap gap-1" id="topInfluentialChips">
+                    <!-- Chips inserted here -->
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Explainability Deep Dive Table Section (Under inspector) -->
+        <div class="glass-card mt-4" id="explainabilityDetailCard">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-scale-balanced text-gradient-primary"></i>
+              <h5 class="card-title-text mb-0">Bayesian Word-Level Influence Log-Odds</h5>
+            </div>
+            <span class="x-small text-muted-light font-monospace">Formula: Log-Odds = ln P(w|Spam) - ln P(w|Ham)</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-dark table-glass align-middle mb-0" id="wordExplainTable">
+              <thead>
+                <tr>
+                  <th>Word / Token</th>
+                  <th>Occurrences</th>
+                  <th>Classification Bias</th>
+                  <th>Log-Odds Score (Δ)</th>
+                  <th>Influence Strength</th>
+                </tr>
+              </thead>
+              <tbody id="wordExplainTableBody">
+                <tr>
+                  <td colspan="5" class="text-center text-muted-light py-3">Analyze an email to view word-level mathematical attribution.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================== TAB 2: BATCH CSV CLASSIFIER ==================== -->
+      <div class="tab-pane fade" id="batch-tab-pane" role="tabpanel" tabindex="0">
+        <div class="row g-4">
+          
+          <!-- Upload Area -->
+          <div class="col-lg-5">
+            <div class="glass-card h-100">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="fa-solid fa-file-arrow-up text-indigo"></i>
+                <h5 class="card-title-text mb-0">Upload Dataset / CSV</h5>
+              </div>
+              <p class="text-muted-light small mb-3">
+                Upload a <code>.csv</code> or <code>.txt</code> file containing emails or SMS messages. The model will process all rows in bulk with high-speed vectorized inference.
+              </p>
+
+              <!-- Drag and Drop Zone -->
+              <div class="drop-zone p-4 text-center rounded-3 mb-3" id="csvDropZone">
+                <input type="file" id="batchFileInput" accept=".csv,.txt" class="d-none">
+                <div class="drop-icon-wrapper mb-2">
+                  <i class="fa-solid fa-cloud-arrow-up fa-2x text-indigo"></i>
+                </div>
+                <h6 class="text-white fw-semibold mb-1" id="dropZoneTitle">Drag & Drop CSV / TXT here</h6>
+                <p class="text-muted-light x-small mb-3">or browse files from your computer</p>
+                <button type="button" class="btn btn-sm btn-outline-glass" onclick="document.getElementById('batchFileInput').click()">
+                  <i class="fa-solid fa-folder-open me-1"></i> Browse Files
+                </button>
+              </div>
+
+              <!-- Sample Template Link & Direct Batch Paste -->
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <button type="button" class="btn btn-sm btn-ghost text-indigo p-0" id="downloadSampleCsvBtn">
+                  <i class="fa-solid fa-download me-1"></i> Download Sample CSV
+                </button>
+                <button type="button" class="btn btn-sm btn-ghost text-muted-light p-0" id="loadDemoBatchBtn">
+                  <i class="fa-solid fa-play me-1"></i> Load Demo 10-Item Batch
+                </button>
+              </div>
+
+              <!-- Quick Direct Paste Batch -->
+              <div class="mt-3">
+                <label class="x-small text-muted-light fw-semibold text-uppercase mb-1 d-block">Or Paste Multiple Messages (1 per line)</label>
+                <textarea id="batchTextInput" class="form-control modern-textarea mb-3" rows="4" placeholder="Message line 1&#10;Message line 2&#10;Message line 3..."></textarea>
+                <button id="processBatchBtn" class="btn btn-primary-gradient w-100 fw-semibold py-2">
+                  <span id="batchBtnSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
+                  <i class="fa-solid fa-list-check me-1"></i> Process Batch Classification
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Batch Results Summary & Table -->
+          <div class="col-lg-7">
+            <div class="glass-card h-100 d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-table-list text-indigo"></i>
+                  <h5 class="card-title-text mb-0">Batch Results & Summary</h5>
+                </div>
+                <button id="exportCsvBtn" class="btn btn-sm btn-outline-glass d-none">
+                  <i class="fa-solid fa-file-csv me-1 text-success"></i> Export Predictions CSV
+                </button>
+              </div>
+
+              <!-- Summary Cards Row -->
+              <div class="row g-2 mb-3" id="batchSummaryRow">
+                <div class="col-3">
+                  <div class="stat-mini-card">
+                    <span class="x-small text-muted-light">Total</span>
+                    <h5 class="fw-bold mb-0 text-white" id="batchTotalCount">-</h5>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="stat-mini-card">
+                    <span class="x-small text-danger">Spam</span>
+                    <h5 class="fw-bold mb-0 text-danger" id="batchSpamCount">-</h5>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="stat-mini-card">
+                    <span class="x-small text-success">Ham</span>
+                    <h5 class="fw-bold mb-0 text-success" id="batchHamCount">-</h5>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="stat-mini-card">
+                    <span class="x-small text-indigo">Avg Conf</span>
+                    <h5 class="fw-bold mb-0 text-indigo" id="batchAvgConf">-</h5>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Results Table Container -->
+              <div class="table-responsive flex-grow-1 border-glass rounded-3" style="max-height: 380px; overflow-y: auto;">
+                <table class="table table-dark table-glass align-middle mb-0" id="batchResultsTable">
+                  <thead class="sticky-top">
+                    <tr>
+                      <th style="width: 50px;">#</th>
+                      <th>Message Snippet</th>
+                      <th style="width: 100px;">Prediction</th>
+                      <th style="width: 110px;">Spam Prob</th>
+                      <th style="width: 90px;">Confidence</th>
+                    </tr>
+                  </thead>
+                  <tbody id="batchTableBody">
+                    <tr>
+                      <td colspan="5" class="text-center text-muted-light py-5">
+                        <i class="fa-solid fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+                        No batch loaded. Upload a CSV or paste multiple messages to start.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ==================== TAB 3: MODEL ANALYTICS & METRICS ==================== -->
+      <div class="tab-pane fade" id="analytics-tab-pane" role="tabpanel" tabindex="0">
+        
+        <!-- Metric Cards Row -->
+        <div class="row g-3 mb-4" id="metricsCardsRow">
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card">
+              <div class="stat-icon-wrap text-indigo"><i class="fa-solid fa-bullseye"></i></div>
+              <p class="stat-label">Model Accuracy</p>
+              <h3 class="stat-value text-white" id="statAccuracy">98.5%</h3>
+              <span class="stat-badge text-success"><i class="fa-solid fa-arrow-up"></i> High Precision</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card">
+              <div class="stat-icon-wrap text-success"><i class="fa-solid fa-filter-circle-dollar"></i></div>
+              <p class="stat-label">Spam Precision</p>
+              <h3 class="stat-value text-white" id="statPrecision">96.5%</h3>
+              <span class="stat-badge text-muted-light">Low False Positives</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card">
+              <div class="stat-icon-wrap text-warning"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+              <p class="stat-label">Spam Recall</p>
+              <h3 class="stat-value text-white" id="statRecall">91.9%</h3>
+              <span class="stat-badge text-muted-light">Catch rate</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card">
+              <div class="stat-icon-wrap text-danger"><i class="fa-solid fa-award"></i></div>
+              <p class="stat-label">F1-Score</p>
+              <h3 class="stat-value text-white" id="statF1">94.2%</h3>
+              <span class="stat-badge text-muted-light">Harmonic Mean</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card">
+              <div class="stat-icon-wrap text-info"><i class="fa-solid fa-database"></i></div>
+              <p class="stat-label">Training Corpus</p>
+              <h3 class="stat-value text-white" id="statRecords">5,572</h3>
+              <span class="stat-badge text-muted-light">UCI SMS Dataset</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card">
+              <div class="stat-icon-wrap text-purple"><i class="fa-solid fa-spell-check"></i></div>
+              <p class="stat-label">Vocabulary Features</p>
+              <h3 class="stat-value text-white" id="statVocab">6,401</h3>
+              <span class="stat-badge text-muted-light">N-gram tokens</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Charts Row -->
+        <div class="row g-4 mb-4">
+          <!-- Class Distribution Donut Chart -->
+          <div class="col-lg-4">
+            <div class="glass-card h-100">
+              <h5 class="card-title-text mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-indigo"></i> Dataset Distribution
+              </h5>
+              <div class="chart-container position-relative" style="height: 260px;">
+                <canvas id="distChart"></canvas>
+              </div>
+              <div class="d-flex justify-content-around mt-3 text-center">
+                <div>
+                  <span class="x-small text-muted-light d-block">Legitimate (Ham)</span>
+                  <span class="fw-bold text-success" id="distHamCount">4,825 (86.6%)</span>
+                </div>
+                <div>
+                  <span class="x-small text-muted-light d-block">Spam</span>
+                  <span class="fw-bold text-danger" id="distSpamCount">747 (13.4%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confusion Matrix Heatmap / Breakdown -->
+          <div class="col-lg-4">
+            <div class="glass-card h-100">
+              <h5 class="card-title-text mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-table-cells text-indigo"></i> Confusion Matrix
+              </h5>
+              <div class="chart-container position-relative" style="height: 260px;">
+                <canvas id="confMatrixChart"></canvas>
+              </div>
+              <div class="row g-2 mt-2 text-center x-small">
+                <div class="col-6">
+                  <div class="p-1 rounded bg-dark-glass">
+                    <span class="text-success fw-bold">True Spam: 137</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-1 rounded bg-dark-glass">
+                    <span class="text-success fw-bold">True Ham: 961</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-1 rounded bg-dark-glass">
+                    <span class="text-warning">False Ham: 12</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-1 rounded bg-dark-glass">
+                    <span class="text-danger">False Spam: 5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Predictive Keywords Bar Chart -->
+          <div class="col-lg-4">
+            <div class="glass-card h-100">
+              <h5 class="card-title-text mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-ranking-star text-indigo"></i> Top Predictive Keywords
+              </h5>
+              <div class="chart-container position-relative" style="height: 290px;">
+                <canvas id="keywordsChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================== TAB 4: BAYES' THEOREM & MATHEMATICS ==================== -->
+      <div class="tab-pane fade" id="bayes-tab-pane" role="tabpanel" tabindex="0">
+        <div class="row g-4">
+          
+          <div class="col-lg-7">
+            <div class="glass-card">
+              <h5 class="card-title-text mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-square-root-variable text-indigo"></i> Mathematical Foundations
+              </h5>
+              
+              <div class="math-callout p-3 rounded-3 mb-3">
+                <h6 class="text-indigo fw-bold mb-2">Bayes' Theorem for Text Classification:</h6>
+                <div class="font-monospace text-white py-2 px-3 bg-dark-glass rounded mb-2 text-center" style="font-size: 1.1rem;">
+                  P(Spam | W) = [ P(Spam) &times; &prod; P(w<sub>i</sub> | Spam) ] / P(W)
+                </div>
+                <p class="x-small text-muted-light mb-0">
+                  Where <code>W = {w<sub>1</sub>, w<sub>2</sub>, ..., w<sub>n</sub>}</code> is the bag-of-words representation of the email message.
+                </p>
+              </div>
+
+              <div class="step-guide">
+                <div class="d-flex gap-3 mb-3">
+                  <div class="step-num">1</div>
+                  <div>
+                    <h6 class="text-white fw-bold mb-1">Prior Probability <code>P(Class)</code></h6>
+                    <p class="text-muted-light small mb-0">
+                      The baseline probability of receiving spam vs ham before reading any message text. Calculated directly from dataset frequencies: 
+                      <code>P(Spam) = 747 / 5572 &approx; 13.4%</code>, <code>P(Ham) = 4825 / 5572 &approx; 86.6%</code>.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-3">
+                  <div class="step-num">2</div>
+                  <div>
+                    <h6 class="text-white fw-bold mb-1">Feature Likelihood <code>P(w<sub>i</sub> | Class)</code> with Laplace Smoothing</h6>
+                    <p class="text-muted-light small mb-0">
+                      The conditional probability that word <code>w<sub>i</sub></code> appears given the message is Spam or Ham:
+                      <code>P(w<sub>i</sub> | Class) = (count(w<sub>i</sub>, Class) + &alpha;) / (&sum; count(w, Class) + &alpha; &times; |V|)</code>
+                      where <code>&alpha; = 1.0</code> prevents zero-probability collapse on unseen words.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-3">
+                  <div class="step-num">3</div>
+                  <div>
+                    <h6 class="text-white fw-bold mb-1">Log-Space Arithmetic (Preventing Underflow)</h6>
+                    <p class="text-muted-light small mb-0">
+                      Multiplying many small floating-point probabilities causes arithmetic underflow. In practice, Naive Bayes uses log-probabilities:
+                      <code>ln P(Spam | W) &prop; ln P(Spam) + &sum; ln P(w<sub>i</sub> | Spam)</code>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="col-lg-5">
+            <div class="glass-card h-100">
+              <h5 class="card-title-text mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-microchip text-indigo"></i> Classifier Specs & Architecture
+              </h5>
+              
+              <ul class="list-unstyled d-flex flex-column gap-3 small text-muted-light mb-4">
+                <li class="d-flex justify-content-between pb-2 border-bottom-glass">
+                  <span class="text-white"><i class="fa-solid fa-gears me-2 text-indigo"></i>Classifier Family:</span>
+                  <span class="font-monospace text-indigo">MultinomialNB</span>
+                </li>
+                <li class="d-flex justify-content-between pb-2 border-bottom-glass">
+                  <span class="text-white"><i class="fa-solid fa-sliders me-2 text-indigo"></i>Smoothing Parameter (&alpha;):</span>
+                  <span class="font-monospace text-white">1.0 (Laplace)</span>
+                </li>
+                <li class="d-flex justify-content-between pb-2 border-bottom-glass">
+                  <span class="text-white"><i class="fa-solid fa-vector-square me-2 text-indigo"></i>Vectorization:</span>
+                  <span class="font-monospace text-white">CountVectorizer (BoW)</span>
+                </li>
+                <li class="d-flex justify-content-between pb-2 border-bottom-glass">
+                  <span class="text-white"><i class="fa-solid fa-scissors me-2 text-indigo"></i>Stemming:</span>
+                  <span class="font-monospace text-white">Porter Stemmer (NLTK)</span>
+                </li>
+                <li class="d-flex justify-content-between pb-2 border-bottom-glass">
+                  <span class="text-white"><i class="fa-solid fa-bolt me-2 text-indigo"></i>Inference Latency:</span>
+                  <span class="font-monospace text-success">&lt; 1.5 ms / query</span>
+                </li>
+                <li class="d-flex justify-content-between">
+                  <span class="text-white"><i class="fa-solid fa-code me-2 text-indigo"></i>Backend Server:</span>
+                  <span class="font-monospace text-white">Python 3.12 / Flask REST</span>
+                </li>
+              </ul>
+
+              <div class="p-3 rounded-3 bg-dark-glass">
+                <span class="x-small text-uppercase tracking-wider fw-bold text-muted-light d-block mb-2">
+                  <i class="fa-solid fa-circle-nodes me-1 text-indigo"></i> REST API Endpoints
+                </span>
+                <div class="font-monospace x-small text-muted-light d-flex flex-column gap-1">
+                  <div><span class="badge bg-primary me-1">POST</span> <code>/predict</code> - Single message classification</div>
+                  <div><span class="badge bg-primary me-1">POST</span> <code>/batch-predict</code> - CSV / multi-row batch</div>
+                  <div><span class="badge bg-secondary me-1">GET</span> <code>/stats</code> - Metrics & top keywords</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 pt-4 text-center border-top-glass text-muted-light small">
+      <p class="mb-1">Bayesian Spam Detection Platform &bull; Engineered with Python Flask, Scikit-Learn & Bootstrap 5</p>
+      <p class="x-small text-secondary mb-0">Multinomial Naive Bayes Machine Learning Demonstration</p>
+    </footer>
+
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Application JS Logic -->
+  <script src="/static/js/script.js"></script>
+</body>
+</html>
